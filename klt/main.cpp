@@ -9,11 +9,11 @@ using namespace cv;
 
 int main()
 {
-	//char file1[] = "test_images/trunks_1.png";
-	//char file2[] = "test_images/trunks_2.png";
+	char file1[] = "test_images/trunks_1.png";
+	char file2[] = "test_images/trunks_2.png";
 	
-	char file1[] = "test_images/Canon A1200 slow pan test..mp40000.jpg";
-	char file2[] = "test_images/Canon A1200 slow pan test..mp40010.jpg";
+	//char file1[] = "test_images/Canon A1200 slow pan test..mp40000.jpg";
+	//char file2[] = "test_images/Canon A1200 slow pan test..mp40010.jpg";
 	
 	Mat img1 = imread(file1, CV_LOAD_IMAGE_GRAYSCALE);
 	Mat img2 = imread(file2, CV_LOAD_IMAGE_GRAYSCALE);

@@ -20,7 +20,7 @@
 // Some threshold value, I think
 #define IMPROVEMENT 0.02
 
-#define Matx33f Matx33d
+//#define Matx33f Matx33d
 
 using namespace cv;
 
@@ -150,7 +150,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	log<<"Current image width = "<<imwidthcur<<std::endl;
 	
 	nloop = 0;
-
+	
 	// Keep improving projective transform.
 	while (nloop < maxiter) {
 		log<<"Entered while loop"<<std::endl;
@@ -159,7 +159,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 		sumer = 0.0;
 		int npts1 = 0;
 		int npts2 = 0;
-
+		
 		for (i = 1; i < 9; i++) {
 			rhs[i] = 0.0;
 			for (j = 1; j < 9; j++) {
@@ -170,7 +170,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 		// Compute the projective warp of each pixel of the image
 		for (y = 1; y < imheightcur - 1; y++) {
 			for (x = 1; x < imwidthcur - 1; x++) {
-
+				
 				// Projective warp of (x, y)
 				Point2f result = proj_warp(B, Point2i(x, y));
 				u = int(result.x);
@@ -182,10 +182,15 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 				fracx = (u > 0) ? (result.x - u) : (u - result.x);
 				fracy = (v > 0) ? (result.y - v) : (v - result.y);
 				
-				u = lookup(u, bckwidthcur);
-				v = lookup(v, bckheightcur);
+				// This is so wrong! What this does is to compare a pixel that
+				// overshoots boundaries with some other random pixel in the
+				// other image!
+				//u = lookup(u, bckwidthcur);
+				//v = lookup(v, bckheightcur);
 				
-				//check if within image boundaries
+				// And if that^ did the image boundary thingy, then what on
+				// earth is this thing doing?
+				// Check if within image boundaries
 				if(		u < 0
 					||	v < 0
 					||	u >= (bckwidthcur - 1)
@@ -196,7 +201,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 				) {
 					continue;
 				}
-
+				
 				// Compute derivatives
 				I_x = (fcurimage(x+1, y) - fcurimage(x-1, y)) / 2.0;
 				I_y = (fcurimage(x, y+1) - fcurimage(x, y-1)) / 2.0;
@@ -278,8 +283,8 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 					fracx = (u > 0) ? (result.x - u) : (u - result.x);
 					fracy = (v > 0) ? (result.y - v) : (v - result.y);
 					
-					u = lookup(u, bckwidthcur);
-					v = lookup(v, bckheightcur);
+					//u = lookup(u, bckwidthcur);
+					//v = lookup(v, bckheightcur);
 					
 					if(		u < 0
 						||	v < 0
@@ -291,11 +296,11 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 					) {
 						continue;
 					}
-
+					
 					// Compute derivatives
 					I_x = (fcurimage(x+1, y) - fcurimage(x-1, y)) / 2.0;
 					I_y = (fcurimage(x, y+1) - fcurimage(x, y-1)) / 2.0;
-				
+					
 					// Not too sure what the objective of this is...
 					// Bi-linear interpolation and the corresponding error e
 					e = (  (1-fracx) * (1-fracy) * fbckgrnd(u, v)
@@ -308,7 +313,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 						   			  lookup(v + 1, bckheightcur))
 						 - fcurimage(x, y)
 						);
-
+					
 					sumer += e * e;
 					npts2++;
 				}
@@ -323,7 +328,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 			
 			//if (sumer/npts2 + IMPROVEMENT >= presumer/npts1)
 			//	nloop = maxiter;
-
+			
 			nloop ++;
 		
 		} // End of if(presumer != 0.0)
@@ -349,7 +354,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	for(j = 0 ; j < imheight ; j++) {
 		for(i = 0 ; i < imwidth ; i++) {
 			bckgrnd(i, j) = uchar(fbckgrnd(i, j));
-			curimage(i, j) = uchar(fbckgrnd(i, j));
+			curimage(i, j) = uchar(fcurimage(i, j));
 		}
 	}
 	

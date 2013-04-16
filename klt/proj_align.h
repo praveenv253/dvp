@@ -3,7 +3,7 @@
 
 #include <opencv/cv.h>			// For type definitions
 
-#define Matx33f Matx33d
+//#define Matx33f Matx33d
 
 using namespace cv;
 
