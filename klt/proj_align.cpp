@@ -13,11 +13,11 @@
 // Note the interchange of u and v! u is the x-component and v is the
 // y-component while calling the function, however when accessing the matrix,
 // we need to first access the row and then the column => y then x!
-#define bckgrnd(u, v) bckgrnd.at<uchar>((v), (u))
-#define curimage(u, v) curimage.at<uchar>((v), (u))
+#define newimage(u, v) newimage.at<uchar>((v), (u))
+#define oldimage(u, v) oldimage.at<uchar>((v), (u))
 #define tempimage(u, v) tempimage.at<uchar>((v), (u))
-#define fbckgrnd(u, v) fbckgrnd.at<float>((v), (u))
-#define fcurimage(u, v) fcurimage.at<float>((v), (u))
+#define fnewimage(u, v) fnewimage.at<float>((v), (u))
+#define foldimage(u, v) foldimage.at<float>((v), (u))
 // Some threshold value, I think
 #define IMPROVEMENT 0.02
 
@@ -79,12 +79,10 @@ Point2f proj_warp(Matx33f B, Point2i u)
  * Starts with the projective transform B and then iterates upto maxiter times
    until there is "alignment".
  */
-float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
+float proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 {
 	log<<"Beginning proj_align"<<std::endl;
 	
-	Mat tempimage;
-	tempimage = curimage.clone();
 	float dIdB[9];
 	
 	// lhs - 8x8 optimization matrix for recovering projective tranformation,
@@ -107,10 +105,10 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	// summse - sum of mean square error
 	float premse, summse;
 
-	Size size = bckgrnd.size();
+	Size size = newimage.size();
 	int bckwidth = size.width;
 	int bckheight = size.height;
-	size = curimage.size();
+	size = oldimage.size();
 	int imwidth = size.width;
 	int imheight = size.height;
 	
@@ -124,22 +122,23 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	// Type cast the images that we got as input to double type. We expect that
 	// they are coming directly from an imread operation, in which case they
 	// are likely uchar.
-	Mat fbckgrnd = Mat(imheight, imwidth, CV_32F);
-	Mat fcurimage = Mat(imheight, imwidth, CV_32F);
+	Mat fnewimage = Mat(imheight, imwidth, CV_32F);
+	Mat foldimage = Mat(imheight, imwidth, CV_32F);
+	Mat tempimage = Mat(imheight+100, imwidth+100, CV_8U, Scalar::all(0));
 	
-	log<<"bckgrnd = \n"<<bckgrnd.Mat::operator()(Range(0, 5), Range(0, 5));
-	log<<"\ncurimage = \n"<<curimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	log<<"newimage = \n"<<newimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	log<<"\noldimage = \n"<<oldimage.Mat::operator()(Range(0, 5), Range(0, 5));
 	
 	// Now to set the type right...
 	for(j = 0 ; j < imheight ; j++) {
 		for(i = 0 ; i < imwidth ; i++) {
-			fbckgrnd(i, j) = bckgrnd(i, j);
-			fcurimage(i, j) = curimage(i, j);
+			fnewimage(i, j) = newimage(i, j);
+			foldimage(i, j) = oldimage(i, j);
 		}
 	}
 		
-	log<<"\nfbckgrnd = \n"<<fbckgrnd.Mat::operator()(Range(0, 5), Range(0, 5));
-	log<<"\nfcurimage = \n"<<fcurimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	log<<"\nfnewimage = \n"<<fnewimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	log<<"\nfoldimage = \n"<<foldimage.Mat::operator()(Range(0, 5), Range(0, 5));
 		
 	log<<"\nType casting worked"<<std::endl;
 	
@@ -197,28 +196,28 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 					||	v < 0
 					||	u >= (bckwidthcur - 1)
 					||	v >= (bckheightcur - 1)
-					||	fbckgrnd(u, v) == 0.0f
-					||	fbckgrnd(lookup(u+1, bckwidthcur), v) == 0.0
-					||	fbckgrnd(u, lookup(v+1, bckheightcur)) == 0.0
+					||	fnewimage(u, v) == 0.0f
+					||	fnewimage(lookup(u+1, bckwidthcur), v) == 0.0
+					||	fnewimage(u, lookup(v+1, bckheightcur)) == 0.0
 				) {
 					continue;
 				}
 				
 				// Compute derivatives
-				I_x = (fcurimage(x+1, y) - fcurimage(x-1, y)) / 2.0;
-				I_y = (fcurimage(x, y+1) - fcurimage(x, y-1)) / 2.0;
+				I_x = (foldimage(x+1, y) - foldimage(x-1, y)) / 2.0;
+				I_y = (foldimage(x, y+1) - foldimage(x, y-1)) / 2.0;
 				
 				// Not too sure what the objective of this is...
 				// Bi-linear interpolation and the corresponding error e
-				e = (  (1-fracx) * (1-fracy) * fbckgrnd(u, v)
+				e = (  (1-fracx) * (1-fracy) * fnewimage(u, v)
 					 + fracx * (1-fracy)
-					   * fbckgrnd(lookup(u + 1, bckwidthcur), v)
+					   * fnewimage(lookup(u + 1, bckwidthcur), v)
 					 + (1-fracx) * fracy
-					   * fbckgrnd(u, lookup(v + 1, bckheightcur))
+					   * fnewimage(u, lookup(v + 1, bckheightcur))
 					 + fracx * fracy
-					   * fbckgrnd(lookup(u + 1, bckwidthcur), lookup(v + 1,
+					   * fnewimage(lookup(u + 1, bckwidthcur), lookup(v + 1,
 					   											bckheightcur))
-					 - fcurimage(x, y)
+					 - foldimage(x, y)
 					);
 				
 				presumer += e * e;					// Sum of squares of errors
@@ -292,28 +291,28 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 						||	v < 0
 						||	u >= (bckwidthcur - 1)
 						||	v >= (bckheightcur - 1)
-						||	fbckgrnd(u, v) == 0.0f
-						||	fbckgrnd(lookup(u+1, bckwidthcur), v) == 0.0
-						||	fbckgrnd(u, lookup(v+1, bckheightcur)) == 0.0
+						||	fnewimage(u, v) == 0.0f
+						||	fnewimage(lookup(u+1, bckwidthcur), v) == 0.0
+						||	fnewimage(u, lookup(v+1, bckheightcur)) == 0.0
 					) {
 						continue;
 					}
 					
 					// Compute derivatives
-					I_x = (fcurimage(x+1, y) - fcurimage(x-1, y)) / 2.0;
-					I_y = (fcurimage(x, y+1) - fcurimage(x, y-1)) / 2.0;
+					I_x = (foldimage(x+1, y) - foldimage(x-1, y)) / 2.0;
+					I_y = (foldimage(x, y+1) - foldimage(x, y-1)) / 2.0;
 					
 					// Not too sure what the objective of this is...
 					// Bi-linear interpolation and the corresponding error e
-					e = (  (1-fracx) * (1-fracy) * fbckgrnd(u, v)
+					e = (  (1-fracx) * (1-fracy) * fnewimage(u, v)
 						 + fracx * (1-fracy)
-						   * fbckgrnd(lookup(u + 1, bckwidthcur), v)
+						   * fnewimage(lookup(u + 1, bckwidthcur), v)
 						 + (1-fracx) * fracy
-						   * fbckgrnd(u, lookup(v + 1, bckheightcur))
+						   * fnewimage(u, lookup(v + 1, bckheightcur))
 						 + fracx * fracy
-						   * fbckgrnd(lookup(u + 1, bckwidthcur),
+						   * fnewimage(lookup(u + 1, bckwidthcur),
 						   			  lookup(v + 1, bckheightcur))
-						 - fcurimage(x, y)
+						 - foldimage(x, y)
 						);
 					
 					sumer += e * e;
@@ -355,12 +354,12 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	
 	// Actually apply the projective transform to see the progression of
 	// results
-	for(j = 0 ; j < imheight ; j++) {
-		for(i = 0 ; i < imwidth ; i++) {
+	for(j = -100 ; j < imheight ; j++) {
+		for(i = -100 ; i < imwidth ; i++) {
 			Point2f result = proj_warp(B, Point2i(i, j));
 			u = result.x;
 			v = result.y;
-			tempimage(i, j) = 0;
+			tempimage(i+100, j+100) = 0;
 			if (    u < 0
 				 || v < 0
 				 || u >= imwidthcur
@@ -368,10 +367,10 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 			) {
 			  	continue;
 			}
-			tempimage(i, j) = uchar(fcurimage(u, v));
+			tempimage(i+100, j+100) = uchar(fnewimage(u, v));
 		}
 	}
-	imshow("Current Image", tempimage);
+	imshow("Transformed background image", tempimage);
 	waitKey(0);
 	
 	return summse;
