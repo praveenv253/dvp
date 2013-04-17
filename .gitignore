@@ -3,3 +3,9 @@
 
 # Ignore executable output files
 *.out
+
+# Ignore python compiled files
+*.pyc
+
+# Ignore numpy data files
+*.npy
