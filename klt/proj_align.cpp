@@ -79,7 +79,7 @@ Point2f proj_warp(Matx33f B, Point2i u)
  * Starts with the projective transform B and then iterates upto maxiter times
    until there is "alignment".
  */
-float proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
+Mat proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 {
 	log<<"Beginning proj_align"<<std::endl;
 	
@@ -122,9 +122,9 @@ float proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 	// Type cast the images that we got as input to double type. We expect that
 	// they are coming directly from an imread operation, in which case they
 	// are likely uchar.
-	Mat fnewimage = Mat(imheight, imwidth, CV_32F);
+	Mat fnewimage = Mat(bckheight, bckwidth, CV_32F);
 	Mat foldimage = Mat(imheight, imwidth, CV_32F);
-	Mat tempimage = Mat(imheight+100, imwidth+100, CV_8U, Scalar::all(0));
+	Mat tempimage = Mat(imheight+200, imwidth+200, CV_8U, Scalar::all(0));
 	
 	log<<"newimage = \n"<<newimage.Mat::operator()(Range(0, 5), Range(0, 5));
 	log<<"\noldimage = \n"<<oldimage.Mat::operator()(Range(0, 5), Range(0, 5));
@@ -359,8 +359,19 @@ float proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 			tempimage(i+100, j+100) = uchar(fnewimage(u, v));
 		}
 	}
+	
+	log<<"Done with application of projective transform";
+	
+	// Add the background to the new image
+	for(j = 0 ; j < imheight ; j++) {
+		for(i = 0 ; i < imwidth ; i++) {
+			tempimage(i+100, j+100) = oldimage(i, j);
+		}
+	}
+
 	imshow("Transformed background image", tempimage);
 	waitKey(0);
-	
-	return summse;
+
+	// Return something useful
+	return tempimage;
 }

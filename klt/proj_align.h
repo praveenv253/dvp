@@ -9,6 +9,6 @@ using namespace cv;
 
 Mat subsample(Mat);
 Point2f proj_warp(Matx33f, Point2i);
-float proj_align(Mat, Mat, Matx33f &, int);
+Mat proj_align(Mat, Mat, Matx33f &, int);
 
 #endif
