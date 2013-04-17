@@ -9,7 +9,7 @@ import numpy as np
 
 # Number of frames on which to train. These will be used as a template
 # background to subtract.
-TRAINING_FRAMES = 20
+TRAINING_FRAMES = 30
 
 def train(capture, num_frames, height, width, channels, flatten=False):
     """Function used to set up the environment for background subtraction."""
@@ -51,7 +51,7 @@ def background_subtract(frame, means, variances):
     """Function to subtract the background from a frame, pixel by pixel"""
     
     # Threshold parameter v
-    v = 2
+    v = 25
 
     # If the intensity is within `v` variances of the mean, it is background,
     # otherwise it is foreground
@@ -65,12 +65,8 @@ if __name__ == '__main__':
     print 'Program started'
 
     # Begin to capture image from camera
-    capture = cv.CaptureFromCAM(0)
-    
-    # Discard first 200 frames, as the camera takes time to adjust
-    for i in xrange(200):
-        temp = cv.QueryFrame(capture)
-    
+    capture = cv.CaptureFromFile('Training_Background.mp4')
+        
     # First frame is used as a temporary frame to determine frame parameters
     temp = cv.QueryFrame(capture)
     width = temp.width
@@ -88,6 +84,7 @@ if __name__ == '__main__':
     
     print 'Now subtracting background...'
     # Proceed to subtract background of successive frames
+    capture = cv.CaptureFromFile('Test.mp4')
     while(1):
         # Acquire frame
         image = cv.QueryFrame(capture)

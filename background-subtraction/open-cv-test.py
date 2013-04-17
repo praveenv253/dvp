@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import cv
+import cv2.cv as cv
 import numpy as np
 
 MAXFRAMES = 250
 
 # Begin to capture image from camera
 capture = cv.CaptureFromCAM(0)
+print capture
 
 # First frame is used as a temporary frame to determine frame parameters
 temp = cv.QueryFrame(capture)
@@ -22,15 +23,18 @@ while count < MAXFRAMES:
     # Acquire frame
     image = cv.QueryFrame(capture)
     # Convert frame image into a numpy array
-    mat = cv.GetMat(image)
-    frame = np.asarray(mat)
+    #mat = cv.GetMat(image)
+    #frame = np.asarray(mat)
     # Operate on the numpy array
-    frame = 255 - frame             # Inverts colour
+    #frame = 255 - frame             # Inverts colour
+    #frame = np.average(frame, axis=2).reshape((height, width, 1))
+    #frame = np.tensordot(frame, np.ones((1, 3)), axes=[2,0])
+    #print frame
     # Convert the numpy array back into an image
-    mat = cv.fromarray(frame)
-    image = cv.GetImage(mat)
+    #mat = cv.fromarray(frame)
+    #image = cv.GetImage(mat)
     # Write frame to output and display
-    cv.WriteFrame(writer, image)
+    #cv.WriteFrame(writer, image)
     cv.ShowImage('Image_Window', image)
     cv.WaitKey(2)
     count += 1
