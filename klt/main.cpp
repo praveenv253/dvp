@@ -9,14 +9,11 @@ using namespace cv;
 
 int main()
 {
-	char file1[] = "test_images/trunks_1.png";
-	char file2[] = "test_images/trunks_2.png";
-
 	Mat img1[5];
 	Mat img2[5];
 	
-	//char file1[] = "test_images/Canon A1200 slow pan test..mp40000.jpg";
-	//char file2[] = "test_images/Canon A1200 slow pan test..mp40010.jpg";
+	char file1[] = "test_images/Canon A1200 slow pan test..mp40000.jpg";
+	char file2[] = "test_images/Canon A1200 slow pan test..mp40010.jpg";
 	
 	img1[0] = imread(file1, CV_LOAD_IMAGE_GRAYSCALE);
 	img2[0] = imread(file2, CV_LOAD_IMAGE_GRAYSCALE);
@@ -49,7 +46,7 @@ int main()
 	// Call the projective transform to compute the exact transform.
 	for(i = 0 ; i < 5 ; i++) {
 		// Start with most blurred version (top of pyramid)
-		proj_align(img1[4-i], img2[4-i], B, 5);
+		proj_align(img1[4-i], img2[4-i], B, 10);
 	}
 	
 	log<<"Projective alignment completed"<<std::endl;
