@@ -5,7 +5,7 @@ testlu: testlu.out
 
 CC = g++
 CFLAGS = -c -Wall
-EXTLIBS = -lopencv_core -lopencv_highgui
+EXTLIBS = -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 klt.out: lu.o proj_align.o main.o
 	$(CC) -o klt.out lu.o proj_align.o main.o $(EXTLIBS)

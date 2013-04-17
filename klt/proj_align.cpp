@@ -15,8 +15,9 @@
 // we need to first access the row and then the column => y then x!
 #define bckgrnd(u, v) bckgrnd.at<uchar>((v), (u))
 #define curimage(u, v) curimage.at<uchar>((v), (u))
-#define fbckgrnd(u, v) fbckgrnd.at<double>((v), (u))
-#define fcurimage(u, v) fcurimage.at<double>((v), (u))
+#define tempimage(u, v) tempimage.at<uchar>((v), (u))
+#define fbckgrnd(u, v) fbckgrnd.at<float>((v), (u))
+#define fcurimage(u, v) fcurimage.at<float>((v), (u))
 // Some threshold value, I think
 #define IMPROVEMENT 0.02
 
@@ -82,7 +83,8 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 {
 	log<<"Beginning proj_align"<<std::endl;
 	
-	Mat tempimage1, tempimage2;
+	Mat tempimage;
+	tempimage = curimage.clone();
 	float dIdB[9];
 	
 	// lhs - 8x8 optimization matrix for recovering projective tranformation,
@@ -122,8 +124,8 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	// Type cast the images that we got as input to double type. We expect that
 	// they are coming directly from an imread operation, in which case they
 	// are likely uchar.
-	Mat fbckgrnd = Mat(imheight, imwidth, CV_64F);
-	Mat fcurimage = Mat(imheight, imwidth, CV_64F);
+	Mat fbckgrnd = Mat(imheight, imwidth, CV_32F);
+	Mat fcurimage = Mat(imheight, imwidth, CV_32F);
 	
 	log<<"bckgrnd = \n"<<bckgrnd.Mat::operator()(Range(0, 5), Range(0, 5));
 	log<<"\ncurimage = \n"<<curimage.Mat::operator()(Range(0, 5), Range(0, 5));
@@ -273,7 +275,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 			for (y = 1; y < imheightcur - 1; y++) {
 				for (x = 1 ; x < imwidthcur - 1; x++) {
 					
-					Point2i result = proj_warp(Bnew, Point2i(x, y));
+					Point2f result = proj_warp(Bnew, Point2i(x, y));
 					u = int(result.x);
 					v = int(result.y);
 					
@@ -282,7 +284,7 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 					// performed.
 					fracx = (u > 0) ? (result.x - u) : (u - result.x);
 					fracy = (v > 0) ? (result.y - v) : (v - result.y);
-					
+
 					//u = lookup(u, bckwidthcur);
 					//v = lookup(v, bckheightcur);
 					
@@ -351,12 +353,26 @@ float proj_align(Mat bckgrnd, Mat curimage, Matx33f &B, int maxiter)
 	
 	} // End while
 	
+	// Actually apply the projective transform to see the progression of
+	// results
 	for(j = 0 ; j < imheight ; j++) {
 		for(i = 0 ; i < imwidth ; i++) {
-			bckgrnd(i, j) = uchar(fbckgrnd(i, j));
-			curimage(i, j) = uchar(fcurimage(i, j));
+			Point2f result = proj_warp(B, Point2i(i, j));
+			u = result.x;
+			v = result.y;
+			tempimage(i, j) = 0;
+			if (    u < 0
+				 || v < 0
+				 || u >= imwidthcur
+				 || v >= imheightcur
+			) {
+			  	continue;
+			}
+			tempimage(i, j) = uchar(fcurimage(u, v));
 		}
 	}
+	imshow("Current Image", tempimage);
+	waitKey(0);
 	
 	return summse;
 }
