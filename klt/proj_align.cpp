@@ -183,14 +183,6 @@ float proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 				fracx = (u > 0) ? (result.x - u) : (u - result.x);
 				fracy = (v > 0) ? (result.y - v) : (v - result.y);
 				
-				// This is so wrong! What this does is to compare a pixel that
-				// overshoots boundaries with some other random pixel in the
-				// other image!
-				//u = lookup(u, bckwidthcur);
-				//v = lookup(v, bckheightcur);
-				
-				// And if that^ did the image boundary thingy, then what on
-				// earth is this thing doing?
 				// Check if within image boundaries
 				if(		u < 0
 					||	v < 0
@@ -283,9 +275,6 @@ float proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 					// performed.
 					fracx = (u > 0) ? (result.x - u) : (u - result.x);
 					fracy = (v > 0) ? (result.y - v) : (v - result.y);
-
-					//u = lookup(u, bckwidthcur);
-					//v = lookup(v, bckheightcur);
 					
 					if(		u < 0
 						||	v < 0
