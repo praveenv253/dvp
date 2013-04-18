@@ -1,0 +1,6 @@
+Algorithms implemented as part of my Digital Video Processing course.
+All programs use OpenCV.
+
+Currently has implementations of:
+1. Gaussian Mixture Model based background subtraction (implemented in python)
+2. Panorama stitching using the Lucas-Kanade Tracker
