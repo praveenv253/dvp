@@ -119,28 +119,36 @@ Mat proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 		for (j = 0 ; j < 3 ; j++)
 			B(i, j) = B(i, j) / B(2, 2);
 	
+	log<<"Normalized projective transform parameters."<<std::endl;
+	
 	// Type cast the images that we got as input to double type. We expect that
 	// they are coming directly from an imread operation, in which case they
 	// are likely uchar.
 	Mat fnewimage = Mat(bckheight, bckwidth, CV_32F);
 	Mat foldimage = Mat(imheight, imwidth, CV_32F);
+	
 	Mat tempimage = Mat(imheight+200, imwidth+200, CV_8U, Scalar::all(0));
 	
-	log<<"newimage = \n"<<newimage.Mat::operator()(Range(0, 5), Range(0, 5));
-	log<<"\noldimage = \n"<<oldimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	//log<<"newimage = \n"<<newimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	//log<<"\noldimage = \n"<<oldimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	log<<"Going to do type casting now\n";
 	
 	// Now to set the type right...
+	for(j = 0 ; j < bckheight ; j++) {
+		for(i = 0 ; i < bckwidth ; i++) {
+			fnewimage(i, j) = newimage(i, j);
+		}
+	}
 	for(j = 0 ; j < imheight ; j++) {
 		for(i = 0 ; i < imwidth ; i++) {
-			fnewimage(i, j) = newimage(i, j);
 			foldimage(i, j) = oldimage(i, j);
 		}
 	}
 		
-	log<<"\nfnewimage = \n"<<fnewimage.Mat::operator()(Range(0, 5), Range(0, 5));
-	log<<"\nfoldimage = \n"<<foldimage.Mat::operator()(Range(0, 5), Range(0, 5));
-		
-	log<<"\nType casting worked"<<std::endl;
+	//log<<"\nfnewimage = \n"<<fnewimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	//log<<"\nfoldimage = \n"<<foldimage.Mat::operator()(Range(0, 5), Range(0, 5));
+	
+	log<<"Type casting worked"<<std::endl;
 	
 	int bckwidthcur = bckwidth;
 	int bckheightcur = bckheight;
@@ -199,7 +207,6 @@ Mat proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 				I_x = (foldimage(x+1, y) - foldimage(x-1, y)) / 2.0;
 				I_y = (foldimage(x, y+1) - foldimage(x, y-1)) / 2.0;
 				
-				// Not too sure what the objective of this is...
 				// Bi-linear interpolation and the corresponding error e
 				e = (  (1-fracx) * (1-fracy) * fnewimage(u, v)
 					 + fracx * (1-fracy)
@@ -360,12 +367,15 @@ Mat proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 		}
 	}
 	
-	log<<"Done with application of projective transform";
+	log<<"Done with application of projective transform"<<std::endl;
 	
 	// Add the background to the new image
 	for(j = 0 ; j < imheight ; j++) {
 		for(i = 0 ; i < imwidth ; i++) {
-			tempimage(i+100, j+100) = oldimage(i, j);
+			// In case the old image has holes (or gaps on the sides), do not
+			// overwrite the new image.
+			if(oldimage(i, j) != 0)
+				tempimage(i+100, j+100) = oldimage(i, j);
 		}
 	}
 

@@ -7,14 +7,17 @@ CC = g++
 CFLAGS = -c -Wall
 EXTLIBS = -lopencv_core -lopencv_highgui -lopencv_imgproc
 
-klt.out: lu.o proj_align.o main.o
-	$(CC) -o klt.out lu.o proj_align.o main.o $(EXTLIBS)
+klt.out: lu.o proj_align.o main.o stitch.o
+	$(CC) -o klt.out lu.o proj_align.o stitch.o main.o $(EXTLIBS)
 
-main.o: main.cpp proj_align.h utils.h
+main.o: main.cpp proj_align.h utils.h stitch.h
 	$(CC) $(CFLAGS) main.cpp
 
 proj_align.o: proj_align.h proj_align.cpp utils.h
 	$(CC) $(CFLAGS) proj_align.cpp
+
+stitch.o: stitch.h stitch.cpp utils.h
+	$(CC) $(CFLAGS) stitch.cpp
 
 lu.o: lu.h lu.cpp
 	$(CC) $(CFLAGS) lu.cpp
