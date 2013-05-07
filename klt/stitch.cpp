@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
@@ -7,7 +8,7 @@
 
 using namespace cv;
 
-Mat crop(Mat image)
+Mat crop(Mat image, int filenum)
 {
 	Size size = image.size();
 	int type = image.type();
@@ -43,13 +44,13 @@ Mat crop(Mat image)
 	Mat cropped_image = image(crop_rect);
 	log<<"Done resizing image"<<std::endl;
 	
+	std::stringstream s;
+	s<<"output/"<<filenum<<".jpg";
+	
+	imwrite(s.str(), cropped_image);
 	//imshow("Cropped image", cropped_image);
 	//waitKey(0);
 	
 	return cropped_image;
 }
 
-Mat stitch(Mat &canvas, Mat newimage)
-{
-
-}

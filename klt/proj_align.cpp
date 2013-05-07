@@ -379,8 +379,8 @@ Mat proj_align(Mat oldimage, Mat newimage, Matx33f &B, int maxiter)
 		}
 	}
 
-	imshow("Transformed background image", tempimage);
-	waitKey(0);
+	//imshow("Transformed background image", tempimage);
+	//waitKey(0);
 
 	// Return something useful
 	return tempimage;

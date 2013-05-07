@@ -5,7 +5,6 @@
 
 using namespace cv;
 
-Mat crop(Mat);
-Mat stitch(Mat &, Mat);
+Mat crop(Mat, int);
 
 #endif

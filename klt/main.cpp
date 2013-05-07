@@ -7,8 +7,9 @@
 #include "proj_align.h"
 #include "stitch.h"
 
-#define FILESTARTNUM 40150
-#define NUMITER 10		   // Number of iterations for each projective transform
+#define FILESTARTNUM 40100
+#define FILEENDNUM 40011
+#define NUMITER 15		   // Number of iterations for each projective transform
 using namespace cv;
 
 int main()
@@ -20,11 +21,11 @@ int main()
 	char filename[] = "test_images/Canon A1200 slow pan test..mp"; 
 	char extension[] = ".jpg";
 	std::stringstream s;
-	int filenum = FILESTARTNUM;
+	int filenum;
 
 	int k = 10;			  // k is a parameter that determines amount of blurring
 
-	for( ; ; filenum--) {
+	for(filenum = FILESTARTNUM ; filenum >= FILEENDNUM ; filenum--) {
 		
 		s.str("");
 		s<<filename<<filenum<<extension;
@@ -70,7 +71,7 @@ int main()
 		}
 		
 		log<<"Beginning cropping"<<std::endl;
-		tempimage = crop(tempimage);
+		tempimage = crop(tempimage, filenum);
 		log<<"Cropping completed"<<std::endl;
 		
 		canvas = tempimage;
