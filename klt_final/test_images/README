@@ -1,0 +1,7 @@
+Add the files given for testing here.
+
+Currently, the program will start from image number 100 and go downwards while
+stitching.
+
+This can be changed by changing the #define FILESTARTNUM and FILEENDNUM
+variables in main.cpp (FILESTARTNUM > FILEENDNUM)
